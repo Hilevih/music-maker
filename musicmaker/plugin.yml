@@ -1,0 +1,7 @@
+name: musicmaker
+main: me.hilevi.musicmaker.Main
+version: ${project.version}
+commands:
+ create:
+  description: Begins creating a song
+  usage: /create

@@ -1,0 +1,188 @@
+
+	====================
+	= USING THE PLUGIN =
+	====================
+
+WARNING: Using this plugin will create a board in the world as soon as player interacts with environment,
+regardless if a command is used or not.
+
+REQUIREMENTS:
+	There must be a folder called "songs" in your plugins-folder
+	This can also be changed by changing "filepath" in ListToXML and XMLToList to new path
+
+EXPLANATION OF THE PLUGIN:
+	The meaning behind this plugin is to make a way to create music in minecraft, using minecraft sounds.
+	At this point all possible noteblock sounds have been added, as well as some environment sounds.
+	In order to make a song, use the tools explained in the next parts. On the board, each column represents sounds
+	that will be played simultaneously. Columns will have a delay on when they're played.
+	Amount of rows does not matter, although it's not recommended to have many extra ones to save space.
+
+GETTING STARTED:
+	Use the command /create, this will teleport you to the place board will be at, as well as give you tools needed for it.
+	WARNING: All items in your hotbar will be removed when using this command.
+	It's recommended to restart after you're done with the song, as it doesn't remove everything on restart. In case board is
+	not removed when done with it, add enough rows and columns to cover all and then restart.
+	
+
+BOARD LAYOUT:
+	Redstone block:
+		default in the topleft corner, used sometimes when adding (more later)
+	Diamond block:
+		Marks a column on the board
+	Emerald block:
+		Marks a row on the board
+	Concrete:
+		Separator of basically everything
+	Bedrock:
+		Empty note spot
+	Anything else:
+		Non-empty note spot, type varies based on the note's sound type
+		
+
+TOOL INSTRUCTIONS:
+	Shears - Adder / Copier:
+		Left Click - Copy settings of the note you're looking at. This will then be used if you add a new block.
+		Right Click - Depending on where you're looking at:
+			Redstone Block - Add column to the right of it and row under
+			Diamond Block - Add column to the right
+			Emerald Block - Add row under
+			Bedrock - Add note with selected values
+		Shift + Left Click - When looking at the diamond blocks on top, copies the whole column
+			- Can copy multiple columns, but they must be clicked in order
+			- Selected columns can be removed via "Other settings" aka redstone comparator
+		Shift + Right Click - When looking at the diamond blocks on top, adds selected columns to the right of it
+		
+	Ladder - Pitch changer (Note on board):
+		Depending on the block you're looking at:
+			Any note - Change pitch of the note
+			Diamond - Change pitch of each note in the column
+			Emerald - Change pitch of each note in the row
+		Left click to decrease by one, right to increase by one
+		
+	TNT - Volume changer (Note on board):
+		Depending on the block you're looking at:
+			Any note - Change volume of the note
+			Diamond - Change volume of each note in the column
+			Emerald - Change volume of each note in the row
+		Left click to decrease by 0.1, right to increase by 0.1
+		
+	Noteblock - Sound type chooser:
+		Clicking opens a GUI that allows you to choose what sound you want the note to be.
+		This includes eg. all different noteblock sounds (that are added)
+		
+	Blaze powder - Pitch changer (Selected, the one to be added):
+		Right click to increase by one, left click to decrease by one.
+		Changes the chosen pitch, so the notes you add after will have this pitch
+		
+	Feather - Volume changer (Selected, the one to be added):
+		Right click to increase by 0.1, left click to decrease by 0.1.
+		Changes the chosen volume, so the notes you add after will have this volume
+		
+	Jukebox - Song player:
+		Plays the notes currently on the board.
+		Right click - play whole song
+		Left click - play starting from the column you're looking at
+		
+	Redstone comparator - Other settings:
+		Opens GUI with multiple different options:
+			Noteblock - Disabled pitches:
+				Opens GUI, where you can disable pitches you don't want to be added. Ones disabled will be red, others green.
+				This will make pitch changers ignore disabled pitches, however they can still be selected from the GUI.
+			Sugar - Speed changer:
+				Right click to decrease, left click to increase. Lower the value, faster the song
+			Dragon egg - Save song:
+				Saves the song currently on board as an XML file.
+				Name of the song has to be given in chat when asked
+			Music disc - Load song:
+				Loads the song with given name (has to be given in chat when asked)
+				Everything on board at that point will be replaced
+			Redstone comparator - Notes in measure:
+				Left click to decrease, right to increase.
+				Changes the color of the concrete to make things clearer, no other effect
+			Bone - Remove selected columns:
+				Removes the columns that have been selected with the shears (sneak+left click while looking at diamond)
+			Dispenser - Sparse notes:
+				Creates an empty column between each current column.
+				WARNING: CANNOT BE REVERSED
+			TNT - Restart:
+				Removes all current progress there is, aka removes notes and brings the board back to initial size
+				WARNING: CANNOT BE UNDONE
+				
+	Skull - Remove:
+		Depending on the block you're looking at:
+			Diamond - Removes the column
+			Emerald - Removes the row
+			Any note - Removes the note
+			
+			
+			
+	==================
+	= ABOUT THE CODE =
+	==================
+	
+Classes:
+
+	Board					Most important class in the plugin. Stores information of the song making board and has most methods for all
+							changes on it. For the most part code is divided so that each tool has its own section, additionally misc sections
+							for some helper methods
+
+			
+	CommandCreateSong		/create command, gives players the tools and teleports them to starting location
+
+	
+	InputGetter				Gets player input from chat when either saving or loading a song. For this player, whose input we want,
+							is added on a waiting list
+
+	
+	ListToXML				Called when saving a song. Gets all the notes and makes an XML file with them. Requires a folder "songs"
+							in plugins-folder
+
+				
+	Main					Main class of the plugin. Sets up listeners and commands
+
+	
+	MiscGui					GUI for "Other settings and tools" aka the redstone comparator tool in hotbar. Communicates back to Board
+							depending on which item is clicked.
+
+				
+	Note					Represents a single note on the board. Each note has a Soundtype (For example noteblock harp sound),
+							pitch (number of uses, 0-24, as well as actual pitch calculated from this) and volume (float 0-1).
+
+				
+	OnJoinMessage			Looks at PlayerJoinEvent and messages the player instructions when they join the server.
+
+	
+	PitchChooserGui			GUI for choosing a pitch, called by clicking blaze powder while sneaking. Clicking on an item
+							will change the chosen pitch. Color of the items depends on whether the pitch is currently
+							selected, disabled or not disabled
+
+						
+	PitchDisablerGui		GUI for disabling pitches. Disabling them will make them be skipped when "scrolling" with
+							pitch changers, and make the GUI items red. Clicking on an item will toggle the status
+
+							
+	PlaySong				Plays the song currently on board from the starting point given. Has a single repeating runnable
+							that can be cancelled if needed. Speed will depend on the speed of the song, notes on the notes
+
+					
+	SoundTypeChooserGui		GUI for choosing the type of the sound. Currently has a set size, so if adding more sounds
+							the size might have to be changed
+
+							
+	TargetBlockChecker		Listener for interact events. Calls appropriate method in Board based on the tool
+
+	
+	XMLToList				Called when loading a song. Opens an XML file (if exists), and creates a song based on them. Should
+							keep the song the way it was, rows and columns should also remain unless there's an empty row at the end.
+							Requires a file called "songs" in plugins-folder.
+							
+							
+							
+Notes if expanding:
+	If adding more possible sound types, the block can't be Redstone, Diamond, Emerald or Any concrete, unless code is changed.
+	The GUI size will also need to be changed possibly.
+	
+	Most GUIs are based on GUI name and material types of GUI items.
+	If name is changed, both listeners need a change in the name check.
+	If an item of the same type is added to the same GUI (except for SoundTypeChooserGui, that one should work always), the
+	item names have to be checked instead (clickedItem.getItemMeta().getDisplayName() for example).
